@@ -48,16 +48,16 @@ class readTrain_by_path():
             cols[cols[cols == dup].index.values.tolist()] = [dup + '.' + str(i) if i != 0 else dup for i in range(sum(cols == dup))]
 
         df.columns=cols
-        print('Reading file {} completed!'.format(self._filePath))
+        
         return self.rename_column(df)
     
     def read_csv( self ):
         df = pd.read_csv(self._filePath, header=0)
-        print('Reading file {} completed!'.format(self._filePath))
+        #print('Reading file {} completed!'.format(self._filePath))
         return self.rename_column(df)
     
     def read_txt( self ):
         df = pd.read_csv(self._filePath, header=0, sep=' ')
-        print('Reading file {} completed!'.format(self._filePath))
+        #print('Reading file {} completed!'.format(self._filePath))
         return self.rename_column(df)
     
