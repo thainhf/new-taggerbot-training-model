@@ -120,17 +120,28 @@ class runModel():
         #count_vect = CountVectorizer()
         return model_trained.predict(self._count_vect.transform([content]))[0]
         
-    def model_evaluate( self, model, X_test, y_test, data_vec  ):
+    def model_evaluate( self, model, X_test, y_test,data_vec  ):
         X_test = X_test.map(' '.join)
         y_pred = model.predict(self._count_vect.transform(X_test))
         data_vec['tag_id'] = data_vec['tag'].factorize()[0]
+        result = dict()
         #tag_id_df = data_vec[['tag', 'tag_id']].drop_duplicates().sort_values('tag_id')
         #conf_mat = confusion_matrix(y_test, y_pred)
-        print(model.__class__.__name__)
-        print("Accuracy: %1.3f " % (accuracy_score(y_test, y_pred)))
-        #print(metrics.classification_report(y_test, y_pred, target_names=data_vec['tag'].unique()))
+        #print(model.__class__.__name__)
+        #print(len(set(y_pred)))
+        #print("Accuracy: %1.3f " % (accuracy_score(y_test, y_pred)))
+        #print(metrics.classification_report(y_test, y_pred, target_names=data_vec['tag'].unique()[:len(y_test.unique())]))
+        result['model_name'] = model.__class__.__name__
+        result['Accuracy'] = accuracy_score(y_test, y_pred)
+        return result
         
-    #def model_evaluated_table( self, model_name, accuracy ):
+        
+    """def model_evaluated_for_table( self, model_name, accuracy ):
+        X_test = X_test.map(' '.join)
+        y_pred = model.predict(self._count_vect.transform(X_test))
+        data_vec['tag_id'] = data_vec['tag'].factorize()[0]
+        
+        return """
         
         
     def model_evaluate_multilabel( self, model, X_test, y_test, data_vec  ):
@@ -138,14 +149,3 @@ class runModel():
         y_pred = model.predict(self._count_vect.transform(X_test))
         data_vec['tag_id'] = data_vec['tag'].factorize()[0]
         print(metrics.classification_report(y_test, y_pred, target_names=data_vec['tag'].unique()))
-    
-    """def box_plot( self, cv_df ):
-        try :
-            ax = sns.boxplot(x='model_name', y='accuracy', data=cv_df)
-            sns.stripplot(x='model_name', y='accuracy', data=cv_df, 
-                        size=8, jitter=True, edgecolor="gray", linewidth=2)
-            ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
-            plt.show()
-            
-        except :
-            print('Cannot plot this data')"""

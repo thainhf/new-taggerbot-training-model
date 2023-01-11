@@ -84,7 +84,7 @@ print('----------------------------------------------')
 
 print('Starting to concat training datsets...')
 df_train = concat_tab(listdata)
-
+print('Shape = {}'.format(df_train.shape))
 df_train = df_train.replace({'tag':tag_replace})
 
 
@@ -114,7 +114,7 @@ X_train, X_test, y_train, y_test = train_test_split(df_train['token'], df_train[
 print('Finding features...')
 feature = vector.features(df_train)
 print('Transform table...')
-df_train_vec = vector.pre_vector(df_train)
+df_train_vec = vector.pre_vector(df_train,feature)
 
 print('We starting to select model...')
 #crossVal = model.model_selection(df_train_vec, feature)
@@ -162,11 +162,57 @@ list_model = (DecisionTreeClassifier().__class__.__name__,
 #content = 'ความรู้ และประสบการณ์วิชาชีพ ตามมาตรฐานวิชาชีพครู ได้แก่ (1) วิชาชีพครู (2) วิชาการใช้ภาษาไทยเพื่อการสื่อสาร (3) วิชาการใช้ภาษาอังกฤษเพื่อการสื่อสาร (4) วิชาการใช้เทคโนโลยีดิจิทัลเพื่อการศึกษา และ (5) วิชาเอก ตามที่คณะกรรมการคุรุสภากำหนด และ (ข) การปฏิบัติงานและการปฏิบัติตน'
 #model.model_predict(content, model_trained)
 #num_label = 2
+entries = []
+"""with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+    start_time = time.time()
+    future_to_model = {executor.submit(model.train_model, key, X_train, y_train ): key for key in list_model}
+    for future in concurrent.futures.as_completed(future_to_model):
+                start_time = time.time()
+                key = future_to_model[future]
+                
+                try:
+                    
+                    model_trained = future.result()
+                    
+                    print('Training {} model completed!'.format(key))
+                    
+                except Exception as exc:
+                    print('Error')
+                else:
+                    df_train[key+'_predict'] = df_train['content'].apply(lambda x : str(model.model_predict_table(x, model_trained)))
+                    result = model.model_evaluate( model_trained, X_test, y_test, df_train_vec  )
+                    end_time = time.time()
+                    filename = "models/"+key+"_model.pickle"
+                    # save model
+                    print('Saving model...')
+                    pickle.dump(model_trained, open(filename, "wb"))
+                    print('You can load the model with path =', filename)
+                    
+                    entries.append((key, result['Accuracy'], (end_time-start_time)))"""
+                    
+        
 
 for key in list_model:
+    start_time = time.time()
     model_trained = model.train_model( key, X_train, y_train )
+    end_time = time.time()
+    print('Training {} model completed!'.format(key))
+    
     df_train[key+'_predict'] = df_train['content'].apply(lambda x : str(model.model_predict_table(x, model_trained)))
-    model.model_evaluate( model_trained, X_test, y_test, df_train_vec  )
+    result = model.model_evaluate( model_trained, X_test, y_test, df_train_vec  )
+    entries.append((key, result['Accuracy'], (end_time-start_time)))
+    filename = "models/"+key+"_model.pickle"
+    # save model
+    print('Saving model...')
+    pickle.dump(model_trained, open(filename, "wb"))
+    print('You can load the model with path =', filename)
+    print('------------------------------------------------------')
+    
+benchmark_df = pd.DataFrame(entries, columns=['model_name', 'accuracy', 'runtime (second)'])
+benchmark_df.accuracy = benchmark_df.accuracy.round(2)
+sort_bm = benchmark_df.sort_values(by=['accuracy'],ascending=False).reset_index().drop(columns='index')
+print(sort_bm)
+
 df_train.to_excel('check.xlsx')
 
 

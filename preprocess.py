@@ -78,8 +78,8 @@ class tfidf_vector():
     def features( self, data ):
         return self.split_to_vector(data)[1]
     
-    def pre_vector( self, data ):
-        self.featureSelection(data)
+    def pre_vector( self, data, feature ):
+        self.featureSelection(data, feature )
         return self._datVec
         
     def split_to_vector( self, data ):
@@ -120,13 +120,17 @@ class tfidf_vector():
         
         return self.tfidf_table, self._features
     
-    def featureSelection( self, data ):
+    def featureSelection( self, data, features ):
         
         ans = input('Show correlated features? [y/n] : ')
         
         if ans == 'y':
             while True:
                 try : 
+                    data['tag_id'] = data['tag'].factorize()[0]
+                    labels = data['tag_id']
+                    tag_id_df = data[['tag', 'tag_id']].drop_duplicates().sort_values('tag_id')
+                    tag_to_id = dict(tag_id_df.values)
                     N = int(input('Enter showing number of correlatedunigram (default = 5) : '))
                     for tag, tag_id in sorted(tag_to_id.items()):
                         features_chi2 = chi2(features, labels == tag_id)
@@ -143,8 +147,6 @@ class tfidf_vector():
             
         else :
             print('Skip!')
-            
-        #return self._datVec
             
             
             
